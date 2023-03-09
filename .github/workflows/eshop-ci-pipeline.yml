@@ -1,0 +1,70 @@
+name: InfraOps/eshop-CI-Pipeline
+on:
+  workflow_dispatch:
+env:
+  system_debug: 'false'
+jobs:
+  Job_1:
+    env:
+      DOCKER_REGISTRY:
+      DOCKER_USERNAME:
+    name: Agent job 1
+    runs-on: ubuntu-latest
+    steps:
+    - name: checkout
+      uses: actions/checkout@v3.3.0
+    # Unable to determine registry '51cf927a-e5c3-44a9-b4b9-184d7f2f6818' type. The service connection was not found or the authentication type not supported.
+    - name: Docker Login
+      uses: docker/login-action@v2.1.0
+      with:
+        registry: "${{ env.DOCKER_REGISTRY }}"
+        username: "${{ env.DOCKER_USERNAME }}"
+        password: "${{ secrets.DOCKER_PASSWORD }}"
+#     # This item has no matching transformer
+#     - environment: {}
+#       enabled: true
+#       continueOnError: false
+#       alwaysRun: false
+#       displayName: Run a Docker Compose command
+#       retryCountOnTaskFailure: 0
+#       task: 6975e2d1-96d3-4afc-8a41-498b5d34ea19@0
+#       inputs:
+#         containerregistrytype: Azure Container Registry
+#         dockerRegistryEndpoint:
+#         azureSubscriptionEndpoint: 7e2daabf-f6b0-4ad7-808f-932dbd26eaba
+#         azureContainerRegistry: '{"loginServer":"lticloudlab.azurecr.io", "id" : "/subscriptions/f83aae0f-b5dd-4ce9-8483-a007ea91312b/resourceGroups/rg_cloud_lab/providers/Microsoft.ContainerRegistry/registries/LTICloudLab"}'
+#         dockerComposeFile: src/docker-compose.yml
+#         additionalDockerComposeFiles:
+#         dockerComposeFileArgs:
+#         projectName: "${{ github.repository }}"
+#         qualifyImageNames: true
+#         action: Run a Docker Compose command
+#         additionalImageTags:
+#         includeSourceTags: false
+#         includeLatestTag: false
+#         buildImages: true
+#         serviceName:
+#         containerName:
+#         ports:
+#         workDir:
+#         entrypoint:
+#         containerCommand:
+#         detached: true
+#         abortOnContainerExit: true
+#         imageDigestComposeFile: "${{ runner.temp }}/docker-compose.images.yml"
+#         removeBuildOptions: false
+#         baseResolveDirectory:
+#         outputDockerComposeFile: "${{ runner.temp }}/docker-compose.yml"
+#         dockerComposeCommand: build
+#         arguments:
+#         dockerHostEndpoint:
+#         nopIfNoDockerComposeFile: false
+#         requireAdditionalDockerComposeFiles: false
+#         cwd: "${{ github.workspace }}"
+#         dockerComposePath:
+#       task_type: task
+    - name: Pushing Images to ACR
+      run: |-
+        cd ${Build.SourcesDirectory}
+        chmod +x src/push.sh
+        bash src/push.sh
