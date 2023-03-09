@@ -1,0 +1,29 @@
+name: test
+on:
+  workflow_dispatch:
+jobs:
+  Build:
+    runs-on: ubuntu-latest
+    steps:
+    - name: checkout
+      uses: actions/checkout@v3.3.0
+    - name: checkout
+      uses: actions/checkout@v3.3.0
+      with:
+        repository: jglick/simple-maven-project-with-tests
+    - name: sh
+      shell: bash
+      run: mvn -Dmaven.test.failure.ignore=true clean package
+    - name: snapshot post build job status
+      run: echo "::set-output name=success=${{ job.status == 'success' }}"
+      id: __post_build
+    - name: Publish test results
+      uses: EnricoMi/publish-unit-test-result-action@v2.4.1
+      if: steps.__post_build.outputs.success == 'true'
+      with:
+        junit_files: "**/target/surefire-reports/TEST-*.xml"
+    - name: Upload Artifacts
+      uses: actions/upload-artifact@v3.1.1
+      if: steps.__post_build.outputs.success == 'true'
+      with:
+        path: target/*.jar
