@@ -1,0 +1,27 @@
+name: InfraOps/eshop-CD-Pipeline
+on:
+  workflow_dispatch:
+jobs:
+  eshop-release:
+    runs-on: windows-2019
+    concurrency:
+      group: "${{ github.ref }}"
+      cancel-in-progress: false
+    if: github.event_type != 'pull_request'
+    steps:
+    - name: Azure CLI ${{ github.workspace }}/_LTI-eShopOnContainers/deploy/k8s/helm/deploy-all.ps1
+      uses: azure/login@v1.4.6
+      with:
+        creds: "${{ secrets.AZURE_CREDENTIALS }}"
+    - name: Azure CLI ${{ github.workspace }}/_LTI-eShopOnContainers/deploy/k8s/helm/deploy-all.ps1
+      run: |-
+        $ErrorActionPreference = 'stop'
+        # Write your PowerShell commands here.
+        az account set --subscription f83aae0f-b5dd-4ce9-8483-a007ea91312b
+        az aks get-credentials --resource-group rg_cloud_lab --name eshop-lti-aks-cluster
+        az acr update --name lticloudlab.azurecr.io --allow-trusted-services
+        helm ls
+        cd ${{ github.workspace }}/_LTI-eShopOnContainers/deploy/k8s/helm
+        .\deploy-all.ps1 -externalDns eshop.2b39acde8e9147a2a448.eastus.aksapp.io -aksName eshop-lti-aks-cluster -aksRg rg_cloud_lab -imageTag linux-latest -registry lticloudlab.azurecr.io --useMesh $false
+        if ((Test-Path -LiteralPath variable:\LASTEXITCODE)) { exit $LASTEXITCODE }
+      shell: powershell
